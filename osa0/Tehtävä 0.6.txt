@@ -1,0 +1,14 @@
+Title Tehtävä 0.6
+
+note left of selain:
+Käyttäjä syöttää tekstiä ja painaa save
+end note
+
+selain -> palvelin: HTTP POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+note over selain:
+Taustalla Javascript koodi estää lomakkeen lähetyksen jolloin sivu ei lautudu uudestaan.
+Lisätään muistiinpano listaan, tulostetaan lista ja lähetetään JSON data palvelimelle
+end note
+palvelin-->selain: JSON
+
+
