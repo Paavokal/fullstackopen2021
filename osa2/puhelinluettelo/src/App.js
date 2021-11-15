@@ -1,53 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
-
-
-const Filter = ({value, onChange}) => {
-  return(
-      <div>
-      Filter shown with <input value={value} onChange={onChange}/>
-      {console.log(value)}
-      </div>
-  )
-}
-
-const PersonForm = ({onSubmit,newName,nameChange,newNumber,numberChange}) => {
-  return(
-    <form onSubmit={onSubmit}>
-        <div>
-          name:
-          <input 
-            value={newName}
-            onChange={nameChange}         
-          />
-        </div>
-        <div>
-          number:
-          <input
-            value={newNumber}
-            onChange={numberChange}
-          />
-        </div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
-  )
-}
-
-const Persons = ({contactsToShow}) => {
-  return (
-    <table>
-    <tbody> 
-   {contactsToShow.map(person => 
-    <tr key={person.name}><td>{person.name}</td><td>{person.number}</td></tr>
-     )}
-     </tbody>
-   </table>
-
-  )
-}
-
+import contactService from './services/contactsService.js'
+import Notification from './components/Notification'
+import Filter from './components/Filter'
+import PersonForm from './components/PersonForm'
+import Persons from './components/Persons'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -55,14 +11,16 @@ const App = () => {
   const [ newNumber, setNewNumber ] = useState('')
   const [ searchString, setSearchString ] = useState('')
   const [ showAll, setShowAll ] = useState (true)
+  const [errorMessage, setErrorMessage] = useState(null)
+  const [notificationStyle, setNotificationStyle] = useState('basic')
 
   useEffect(() => {
     console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
+    contactService
+      .getAll()
+      .then(initialPersons => {
         console.log('promise fulfilled')
-        setPersons(response.data)
+        setPersons(initialPersons)
       })
   }, [])
   console.log('render', persons.length, 'notes')
@@ -70,18 +28,83 @@ const App = () => {
  
   const addContact = (event) => {
     event.preventDefault()
+
     const contactObject = {
       name: newName,
       number: newNumber
     }
-    if(persons.some(e => e.name === newName)){
-      alert(`${newName} is already on phonebook!`)
+
+    const personChange = persons.some(e => e.name === newName)
+    const currentPerson = persons.find(e => e.name === newName)
+    const newPersonNumber = {...currentPerson, number: newNumber}
+    console.log(currentPerson, newPersonNumber)
+
+    if(personChange)
+    {
+      window.confirm(`${newName} is already added to phonebook! Replace the old number with a new one?`) &&
+        contactService
+          .update(currentPerson.id ,newPersonNumber)
+          .then(returnedPerson => {
+            setPersons(persons.map(person => person.id !== currentPerson.id ? person : returnedPerson))         
+            setNewName('')
+            setNewNumber('')
+            //notification
+            setNotificationStyle('basic')
+            setErrorMessage(`${contactObject.name} number changed!`)
+            setTimeout(()=> {
+             setErrorMessage(null)
+            },2000)
+          })
+          //error notification
+          .catch(error => {
+            setNotificationStyle('error')
+            setErrorMessage(`Person ${currentPerson.name} was already deleted from server`)
+            setTimeout(()=> {
+              setErrorMessage(null)
+            },2000) 
+            const newPersons = persons.filter((item) => item.id !== currentPerson.id)
+            setPersons(newPersons)       
+          })
     }
     else {
-    setPersons(persons.concat(contactObject))
-    setNewName('')
-    setNewNumber('')
+      contactService
+        .create(contactObject)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
+          setNewName('')
+          setNewNumber('')
+          //notification
+          setNotificationStyle('basic')
+          setErrorMessage(`Added ${contactObject.name}`)
+          setTimeout(()=> {
+            setErrorMessage(null)
+          },2000)
+        })
     }
+  }
+  const deletePerson = (id, name) => {
+    window.confirm(`Delete ${name}?`) &&
+      contactService
+        .remove(id)
+        .then(() => {
+          const newPersons = persons.filter((item) => item.id !== id)
+          setPersons(newPersons)
+          //notification
+          setNotificationStyle('basic')
+          setErrorMessage(`${name} deleted!`)
+          setTimeout(()=> {
+            setErrorMessage(null)
+          },2000)        
+        })
+        .catch(error => {
+          setNotificationStyle('error')
+          setErrorMessage(`Person ${name} was already deleted from server`)
+          setTimeout(()=> {
+            setErrorMessage(null)
+          },2000)
+          const newPersons = persons.filter((item) => item.id !== id)
+          setPersons(newPersons)
+        })
   }
 
   const handleNameChange = (event) => {
@@ -111,10 +134,10 @@ const App = () => {
   ? persons
   : persons.filter(x => x.name.toLowerCase().includes(searchString.toLowerCase()))
 
-
   return (
 
     <div>
+      <Notification message={errorMessage} style={notificationStyle}/>
       <h2>Phonebook</h2>
       <Filter value={searchString} onChange={handleFilterChange}/>
 
@@ -122,7 +145,7 @@ const App = () => {
       <PersonForm onSubmit={addContact} newName={newName} nameChange={handleNameChange} newNumber={newNumber} numberChange={handleNumberChange}/>
       
       <h2>Numbers</h2>
-      <Persons contactsToShow={contactsToShow} />
+      <Persons contactsToShow={contactsToShow} deletePerson={deletePerson}/>
 
     </div>
     

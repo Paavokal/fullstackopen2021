@@ -13,7 +13,7 @@ const Weather = ({capital}) => {
           console.log(1213, response.data)
           setLoading(false)
         })
-    }, [])
+    }, [capital, api_key])
   
   if (isLoading) {
     return (<> Loading...</>)
@@ -24,7 +24,7 @@ const Weather = ({capital}) => {
     {console.log(weather.current.temperature)}
   
   Temperature: {weather.current.temperature} <code>&#176;</code>C<br/> 
-  <img src={weather.current.weather_icons} />
+  <img src={weather.current.weather_icons} alt='weather_icon' />
     </>
   )
   }
