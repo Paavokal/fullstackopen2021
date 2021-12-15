@@ -1,21 +1,26 @@
 const notesRouter = require('express').Router()
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 
 notesRouter.get('/', async(request, response) => {
-    const blogs = await Blog.find({})
+    const blogs = await Blog
+        .find({}).populate('user', {name:1, username:1} )
+
     response.json(blogs.map(blog => blog.toJSON()))
   })
   
-notesRouter.post('/', async(request, response) => {
+notesRouter.post('/', async(request, response, next) => {
 
     const body = request.body
+    const user = await User.findById(body.userId)
 
     const blog = new Blog({
         title: body.title,
         author: body.author,
         url: body.url,
-        likes: body.likes | 0
+        likes: body.likes | 0,
+        user: user._id
     })
 
     if (!body.title | !body.url){
@@ -23,6 +28,11 @@ notesRouter.post('/', async(request, response) => {
     }
     
     const savedBlog = await blog.save()
+    user.blogs = user.blogs.concat(savedBlog._id)
+
+    // ei toiminut ilman {validateModifiedOnly: true }
+    await user.save({validateModifiedOnly: true })
+
     response.json(savedBlog.toJSON())
   })
 
