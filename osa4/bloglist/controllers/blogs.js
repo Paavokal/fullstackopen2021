@@ -1,6 +1,9 @@
 const notesRouter = require('express').Router()
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
+const middleware = require("../utils/middleware")
+
 
 
 notesRouter.get('/', async(request, response) => {
@@ -10,10 +13,15 @@ notesRouter.get('/', async(request, response) => {
     response.json(blogs.map(blog => blog.toJSON()))
   })
   
-notesRouter.post('/', async(request, response, next) => {
-
+notesRouter.post('/', async(request, response) => {
     const body = request.body
-    const user = await User.findById(body.userId)
+    const token = request.token
+    const decodedToken = jwt.verify(token, process.env.SECRET)
+    if (!token || !decodedToken.id) {
+        return response.status(401).json({ error: 'token missing or invalid' })
+      }
+    const user = await User.findById(decodedToken.id)
+
 
     const blog = new Blog({
         title: body.title,
