@@ -3,6 +3,18 @@ import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login' 
 
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className="error">
+      {message}
+    </div>
+  )
+}
+
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('') 
@@ -44,7 +56,7 @@ const App = () => {
       setUsername('')
       setPassword('')
     } catch (exception) {
-      setErrorMessage('wrong credentials')
+      setErrorMessage('Wrong username or password')
       setTimeout(() => {
         setErrorMessage(null)
       }, 5000)
@@ -59,6 +71,7 @@ const App = () => {
 
   const handleNewBlog = (event) => {
     event.preventDefault()
+    try{
     const blogObject = {
       title: title,
       author: author,
@@ -71,13 +84,25 @@ const App = () => {
           setTitle('')
           setAuthor('')
           setUrl('')
+          setErrorMessage(`${blogObject.title} by ${blogObject.author} added `)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
         })
+  } catch(exception) {
+    setErrorMessage('Adding blog failed')
+    setTimeout(() => {
+        setErrorMessage(null)
+    }, 5000)
   }
+
+}
 
   if(user===null){
     return(
       <div>
       <h2>Login</h2>
+      <Notification message={errorMessage}/>
       <form onSubmit={handleLogin}>
         <div>
           username
@@ -107,6 +132,7 @@ const App = () => {
   return (
     <div>
       <h2>blogs</h2>
+      <Notification message={errorMessage}/>
       <p>{user.name} logged in! <button onClick={handleLogout}>Logout</button></p>
       <form onSubmit={handleNewBlog}>
         <div>
@@ -139,7 +165,7 @@ const App = () => {
         <button type="Submit">Create</button>
 
       </form>
-
+      <br/>
       {blogs.map(blog =>
         <Blog key={blog.id} blog={blog} />
       )}
