@@ -1,37 +1,40 @@
-import React, {useState} from 'react'
-const BlogForm = ({createBlog}) => {
+/* eslint-disable linebreak-style */
+import React, { useState } from 'react'
 
-const [title, setTitle] = useState('') 
-const [author, setAuthor] = useState('') 
-const [url, setUrl] = useState('')
+const BlogForm = ({ createBlog }) => {
+  const [title, setTitle] = useState('')
+  const [author, setAuthor] = useState('')
+  const [url, setUrl] = useState('')
 
-const handleTitleChange = (event) => {
+
+  const handleTitleChange = (event) => {
     setTitle(event.target.value)
-}
-const handleAuthorChange= (event) => {
+  }
+  const handleAuthorChange= (event) => {
     setAuthor(event.target.value)
-}
-const handleUrlChange= (event) => {
+  }
+  const handleUrlChange= (event) => {
     setUrl(event.target.value)
-}
+  }
 
-const handleNewBlog = (event) => {
+
+  const handleNewBlog = (event) => {
     event.preventDefault()
     createBlog({
-        title:title,
-        author:author,
-        url:url
+      title:title,
+      author:author,
+      url:url
     })
     setTitle('')
     setAuthor('')
     setUrl('')
-}
+  }
 
 
-return(
-<div>
-    <h2>Create new blog</h2>
-    <form onSubmit={handleNewBlog}>
+  return(
+    <div>
+      <h2>Create new blog</h2>
+      <form onSubmit={handleNewBlog}>
         <div>
           Title:
           <input
@@ -61,7 +64,7 @@ return(
         </div>
         <button type="Submit">Create</button>
 
-    </form>
-</div>
-)}
+      </form>
+    </div>
+  )}
 export default BlogForm
