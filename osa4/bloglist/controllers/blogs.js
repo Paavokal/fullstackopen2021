@@ -80,7 +80,8 @@ blogsRouter.post('/', middleware.userExtractor, async(request, response) => {
 
     const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, {new: true})
     if (updatedBlog){
-        response.json(updatedBlog)
+        response.json(updatedBlog.toJSON())
+        console.log(updatedBlog)
     } else {
         return response.status(404).end()
     }

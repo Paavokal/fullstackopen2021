@@ -25,7 +25,7 @@ const App = () => {
   const [password, setPassword] = useState('') 
   const [user, setUser] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
-  const [loginVisible, setLoginVisible] = useState(false) 
+
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -108,6 +108,19 @@ const blogForm = () => (
     <BlogForm createBlog={handleNewBlog} />
   </Togglable>
 )
+
+const blogUpdate =  (id) => {
+  const blog = blogs.find(b => b.id === id)
+  const likedBlog = {...blog, likes:blog.likes + 1}
+
+  blogService
+    .update(id, likedBlog)
+    .then(returnedBlog => {
+      console.log(returnedBlog)
+      setBlogs(blogs.map(blog => blog.id === id ? {...blog, likes:returnedBlog.likes} : blog ))
+    })
+
+}
     return(
       <div>
       <h2>Blog-app</h2>
@@ -122,7 +135,11 @@ const blogForm = () => (
       }
       <br/>
       {blogs.map(blog =>
-          <Blog key={blog.id} blog={blog}/>
+          <Blog 
+          key={blog.id} 
+          blog={blog} 
+          handleLike={() => blogUpdate(blog.id)}
+          />
       )}
       </div>
     )
